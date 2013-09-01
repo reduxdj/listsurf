@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from pymongo import MongoClient
 
 import logging
 
@@ -16,6 +16,10 @@ from handlers import (AccountLoginHandler,
 
 from queries import init_db_conn
 
+
+def init_db_conn():
+  c = MongoClient()
+  return c.listsurf
 
 ###
 ### Configuration
