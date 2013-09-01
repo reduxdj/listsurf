@@ -7,4 +7,3 @@ distribute==0.6.24
 gunicorn==0.14.2
 requests==0.11.1
 git+git://github.com/j2labs/brubeck.git
-git+git://github.com/reduxdj/listsurf.git
