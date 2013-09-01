@@ -106,7 +106,7 @@ class AccountCreateHandler(BaseHandler, Jinja2Rendering):
         what went wrong.
         """
         username = self.get_argument('username')
-        password = self.get_argument('password')
+        password = self.get_argument('password').encode('utf-8')
         email = self.get_argument('email')
 
         try:
