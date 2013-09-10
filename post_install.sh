@@ -27,11 +27,12 @@ pip install python-dateutil
 pip install pyzmq
 pip install eventlet
 pip install jinja2
+pip install ujson
 iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 6767
 wget https://github.com/zedshaw/mongrel2/tarball/v1.8.0
 cd v1.8.0 && ./configure && make clean all && make install
 git clone https://github.com/reduxdj/listsurf
-cd .. && cd "./listsurf/" && ./listsurf.py
+cd "~/listsurf/" && ./listsurf.py
 useradd -m -d /home/web -s /bin/bash -c "the web owner" -U web
 echo "web ALL=(ALL:ALL) ALL" >> /etc/sudoers
 #mkdir -p proc && sudo mount --bind /proc proc
