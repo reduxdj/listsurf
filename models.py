@@ -12,6 +12,11 @@ from brubeck.models import User
 from brubeck.timekeeping import MillisecondField
 
 
+
+from schematics.models import Model
+from schematics.types import StringType, DecimalType
+from schematics.serialize import whitelist
+
 ###
 ### Social Models
 ###
@@ -23,8 +28,11 @@ User = swap_field(User, ObjectIdField, ['id'])
 ###
 ### List Models
 ###
-    
-class ListItem(Document):
+
+#https://github.com/j2labs/dictshield/blob/master/dictshield/fields/mongo.py
+
+
+class ListItem(Model):
     """Bare minimum to have the concept of streamed item.
     """
     # ownable

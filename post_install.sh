@@ -28,6 +28,7 @@ pip install pyzmq
 pip install eventlet
 pip install jinja2
 pip install ujson
+pip install schematics
 iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 6767
 wget https://github.com/zedshaw/mongrel2/tarball/v1.8.0
 cd v1.8.0 && ./configure && make clean all && make install
