@@ -8,7 +8,8 @@ from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
 from brubeck.templating import Jinja2Rendering
 
-from models import User, ListItem
+from brubeck.models import User
+from models import ListItem
 from queries import (load_user,
                      save_user,
                      load_listitems,

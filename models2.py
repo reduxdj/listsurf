@@ -3,7 +3,8 @@ from schematics.types import (
     URLType, USDCurrencyType
 )
 from schematics.exceptions import ValidationError, StopValidation, ConversionError
-
+from schematics.models import Model
+from brubeck.models import User
 
 """This module contains fields that depend on importing `bson`. `bson` is
 as part of the pymongo distribution.
@@ -11,12 +12,10 @@ as part of the pymongo distribution.
 
 from schematics.types import BaseType
 from schematics.exceptions import ValidationError
-from brubeck.models import User
-from schematics.models import Model
 
 import bson
 
-#Right now this is here because I can't seem to get it installed
+
 class ObjectIdType(BaseType):
     """An field wrapper around MongoDB ObjectIds.  It is correct to say they're
     bson fields, but I am unaware of bson being used outside MongoDB.
@@ -45,29 +44,29 @@ class ObjectIdType(BaseType):
                 raise ValidationError('Invalid ObjectId')
         return True
 
-class User(User):
-  id = ObjectIdType()
+#class User(User):
+	#id = ObjectIdType()
 
 
 class ListItem(Model):
-  """Bare minimum to have the concept of streamed item.
-  """
-  owner = ObjectIdType(required=True)
-  username = StringType(max_length=30, required=True)
-  
+	"""Bare minimum to have the concept of streamed item.
+	"""
+	owner = ObjectIdType(required=True)
+	username = StringType(max_length=30, required=True)
+	
 
-  # streamable
-  created_at = DateTimeType()
-  updated_at = DateTimeType()
+	# streamable
+	created_at = DateTimeType()
+	updated_at = DateTimeType()
 
-  url = URLType()
+	url = URLType()
 
-  class Meta:
-      id_field = ObjectIdType
+	class Meta:
+	    id_field = ObjectIdType
 
-  _private_fields = [
-      'owner',
-  ]
+	_private_fields = [
+	    'owner',
+	]
 
-  def __unicode__(self):
-      return u'%s' % (self.url)
+	def __unicode__(self):
+	    return u'%s' % (self.url)
