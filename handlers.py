@@ -8,10 +8,12 @@ from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
 from brubeck.templating import Jinja2Rendering
 
-from models import User, ListItem
+from models import User, ListItem, Listing
 from queries import (load_user,
                      save_user,
+                     save_listing,
                      load_listitems,
+                     load_listings,
                      save_listitem)
 
 
@@ -185,8 +187,68 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
         return self.redirect('/')
 
 
-### API Handler
+class ListingAddHandler(BaseHandler, Jinja2Rendering):
+    """Add a listing
+    """
+    @web_authenticated
+    def get(self):
+        """Renders a template with our links listed
+        """
+        url = self.get_argument('u')
+        context = {}
+        if url is not None:
+            context['url'] = url
+        return self.render_template('linklists/listing_add.html', **context)
 
+    @web_authenticated
+    def post(self):
+        """Accepts a listing and saves it to the database
+        """
+        url = self.get_argument('url')
+
+        if url and not url.startswith('http'):
+            url = 'http://%s' % (url)
+
+        link_item = {
+            'owner': self.current_user.id,
+            'username': self.current_user.username,
+            'created_at': self.current_time,
+            'updated_at': self.current_time,
+            'baths': self.get_argument('baths'),
+            'rent' : self.get_argument('rent'),
+            'description' : self.get_argument('description')
+        }
+
+        item = Listing(**link_item)
+        item.validate()
+        save_listing(self.db_conn, item)
+        return self.redirect('/')
+
+### API Handler
+class APIListingDisplayHandler(BaseHandler):
+    """A link listserv (what?!)
+    """
+    @web_authenticated
+    def get(self):
+        """Renders a template with our links listed
+        """
+        items_qs = load_listings(self.db_conn, self.current_user.id)
+        items_qs.sort('updated_at', direction=pymongo.DESCENDING)
+        num_items = items_qs.count()
+        
+        items = [Listing.make_ownersafe(i) for i in items_qs]
+
+        data = {
+            'num_items': num_items,
+            'items': items,
+        }
+
+        self.set_body(json.dumps(data))
+        return self.render(status_code=200)
+
+
+
+### API Handler
 class APIListDisplayHandler(BaseHandler):
     """A link listserv (what?!)
     """

@@ -1,0 +1,16 @@
+{% extends "site_base.html" %}
+{% block site_body %}
+
+<div id="listing_add" style="width: 400px;">
+  <form action="/listings/create" method="post">
+      <div>
+      	<label for="url">url</label><input type="text" name="url" value="{{ url }}" />
+      	<label for="title">title</label><input type="text" name="title" value="{{ title }}" />
+      	<label for="description">description</label><input type="text"name="description" value="{{ description }}" />
+      	<label for="rent">rent</label><input type="text" name="rent" value="{{ rent }}" />
+      	<label for="rooms">rooms</label><input type="text" name="rooms" value="{{ rooms }}" />
+      	<label for="baths">baths</label><input type="text" name="baths" value="{{ baths }}" />
+      	<input type="submit" />
+    </div>
+</div>
+{% endblock %}

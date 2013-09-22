@@ -95,6 +95,29 @@ indexes_listitem = [
 ]
     
 
+LISTING_COLLECTION = 'listings'
+indexes_listing = [
+    [('owner', pymongo.ASCENDING)],
+    [('username', pymongo.ASCENDING)],
+    [('title',pymongo.ASCENDING)],
+]
+
+
+def load_listings(db, owner=None, username=None):
+    """Loads a user document from MongoDB.
+    """
+    query_dict = dict()
+    if username:
+        query_dict['username'] = username.lower()
+    elif owner:
+        query_dict['owner'] = owner
+    else:
+        raise ValueError('<owner> or <username> field required')
+
+    query_set = db[LISTING_COLLECTION].find(query_dict)
+    return query_set
+
+
 def load_listitems(db, owner=None, username=None):
     """Loads a user document from MongoDB.
     """
@@ -111,12 +134,23 @@ def load_listitems(db, owner=None, username=None):
 
 
 def save_listitem(db, item):
-    """Loads a user document from MongoDB.
+    """Saves a list_item to MongoDB.
     """
     item_doc = item.to_python()
     iid = db[LISTITEM_COLLECTION].insert(item_doc)
     item._id = iid
 
     apply_all_indexes(db, indexes_listitem, LISTITEM_COLLECTION)
+
+    return iid
+
+
+def save_listing(db,item):
+    """Saves a listing to MongoDB.
+    """
+    item_doc = item.to_python()
+    iid = db[LISTING_COLLECTION].insert(item_doc)
+    item._id = iid
+    apply_all_indexes(db, indexes_listing, LISTING_COLLECTION)
 
     return iid
