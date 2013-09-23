@@ -1,6 +1,6 @@
 from schematics.types import (
     BaseType, StringType, DateTimeType, DateType, IntType, EmailType, LongType,
-    URLType, USDCurrencyType
+    URLType
 )
 from schematics.exceptions import ValidationError, StopValidation, ConversionError
 from schematics.models import Model
@@ -43,10 +43,6 @@ class ObjectIdType(BaseType):
             except Exception, e:
                 raise ValidationError('Invalid ObjectId')
         return True
-
-#class User(User):
-	#id = ObjectIdType()
-
 
 class ListItem(Model):
 	"""Bare minimum to have the concept of streamed item.

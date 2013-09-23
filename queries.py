@@ -3,7 +3,7 @@
 
 import pymongo
 from models import User
-
+import logging
 
 ###
 ### Database Connection Handling
@@ -60,29 +60,25 @@ def load_user(db, username=None, email=None):
     else:
         raise ValueError('Username or email field required')
 
+    #logging.debug(query_dict)
     user_dict = db[USER_COLLECTION].find_one(query_dict)
 
-    # In most cases, the python representation of the data is returned. User
-    # documents are instantiated to provide access to commonly needed User
-    # functions
     if user_dict is None:
         return None
     else:
-        u = User(**user_dict)
+        u = User(user_dict)
+        logging.debug(u)
         return u
 
 
 def save_user(db, user):
     """Loads a user document from MongoDB.
     """
-    user_doc = user.to_python()
+    user_doc = user.to_primitive()
     uid = db[USER_COLLECTION].insert(user_doc)
     user._id = uid
-
     apply_all_indexes(db, indexes_user, USER_COLLECTION)
-
     return uid
-
 
 ###
 ### ListItem Handling
@@ -99,21 +95,15 @@ def load_listitems(db, owner=None, username=None):
     """Loads a user document from MongoDB.
     """
     query_dict = dict()
-    if username:
-        query_dict['username'] = username.lower()
-    elif owner:
-        query_dict['owner'] = owner
-    else:
-        raise ValueError('<owner> or <username> field required')
-
     query_set = db[LISTITEM_COLLECTION].find(query_dict)
+    logging.debug(query_dict)
     return query_set
 
 
 def save_listitem(db, item):
     """Loads a user document from MongoDB.
     """
-    item_doc = item.to_python()
+    item_doc = item.to_primitive()
     iid = db[LISTITEM_COLLECTION].insert(item_doc)
     item._id = iid
 

@@ -1,6 +1,6 @@
 from schematics.types import (
     BaseType, StringType, DateTimeType, DateType, IntType, EmailType, LongType,
-    URLType, USDCurrencyType
+    URLType
 )
 from schematics.exceptions import ValidationError, StopValidation, ConversionError
 
@@ -14,6 +14,7 @@ from schematics.exceptions import ValidationError
 from brubeck.models import User
 from schematics.models import Model
 
+import logging
 import bson
 
 #Right now this is here because I can't seem to get it installed
@@ -47,6 +48,10 @@ class ObjectIdType(BaseType):
 
 class User(User):
   id = ObjectIdType()
+  username = StringType()
+  @classmethod
+  def validate_class_partial(self,value):
+    return True
 
 
 class ListItem(Model):
@@ -55,7 +60,6 @@ class ListItem(Model):
   owner = ObjectIdType(required=True)
   username = StringType(max_length=30, required=True)
   
-
   # streamable
   created_at = DateTimeType()
   updated_at = DateTimeType()

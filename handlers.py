@@ -15,6 +15,17 @@ from queries import (load_user,
                      load_listitems,
                      save_listitem)
 
+from datetime import date
+import datetime
+from schematics.types import DateTimeType
+from brubeck.timekeeping import curtime
+
+from datetime import datetime, timedelta
+
+def totimestamp(dt, epoch=datetime(1970,1,1)):
+    td = dt - epoch
+    # return td.total_seconds()
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 1e6 
 
 ###
 ### Authentication
@@ -32,11 +43,11 @@ class BaseHandler(WebMessageHandler, UserHandlingMixin):
         the database.
         """
         user = None
-        
         # Try loading credentials from secure cookie
         user_id = self.get_cookie('user_id',
                                   secret=self.application.cookie_secret)
 
+        logging.debug(user_id)
         # If secure cookies yields username, load it
         if user_id:
             user = load_user(self.db_conn, username=user_id)
@@ -58,10 +69,7 @@ class BaseHandler(WebMessageHandler, UserHandlingMixin):
             return
         
         logging.debug('Access granted for user: %s' % user.username)
-
         return user
-
-
 ###
 ### Account Handlers
 ###
@@ -111,9 +119,13 @@ class AccountCreateHandler(BaseHandler, Jinja2Rendering):
         email = self.get_argument('email')
 
         try:
-            u = User.create_user(username, password, email)
-            u.validate()
-            save_user(self.db_conn, u)
+            now = curtime()
+            username = username.lower()
+            email = email.strip().lower()
+            user = User({'username':username, 'email':email, 'date_joined':now})
+            user.set_password(password)
+            user.validate()
+            save_user(self.db_conn, user)
         except Exception, e:
             logging.error('Credentials failed')
             logging.error(e)
@@ -170,17 +182,21 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
 
         if not url.startswith('http'):
             url = 'http://%s' % (url)
+
+
+        logging.debug(int(self.current_time))
             
         link_item = {
             'owner': self.current_user.id,
             'username': self.current_user.username,
-            'created_at': self.current_time,
-            'updated_at': self.current_time,
+            'created_at': datetime.utcnow() ,
+            'updated_at': datetime.utcnow(),
             'url': url,
         }
 
-        item = ListItem(**link_item)
-        item.validate()
+        item = ListItem(link_item)
+        logging.debug(item.to_primitive())
+        #item.validate()
         save_listitem(self.db_conn, item)
             
         return self.redirect('/')
