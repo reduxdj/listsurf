@@ -151,7 +151,7 @@ class ListDisplayHandler(BaseHandler, Jinja2Rendering):
     def get(self):
         """Renders a template with our links listed
         """
-        items_qs = load_listitems(self.db_conn, self.current_user.id)
+        items_qs = load_listitems(self.db_conn, self.current_user.username)
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         
         items = [(i['updated_at'], i['url']) for i in items_qs]

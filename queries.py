@@ -90,14 +90,10 @@ indexes_listitem = [
     [('username', pymongo.ASCENDING)],
 ]
     
-
-def load_listitems(db, owner=None, username=None):
+def load_listitems(db, username=None):
     """Loads a user document from MongoDB.
     """
-    query_dict = dict()
-    query_dict['username'] = username
-    query_set = db[LISTITEM_COLLECTION].find(query_dict)
-    logging.debug(query_dict)
+    query_set = db[LISTITEM_COLLECTION].find({'username':username})
     return query_set
 
 
