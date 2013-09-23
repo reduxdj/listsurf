@@ -95,6 +95,7 @@ def load_listitems(db, owner=None, username=None):
     """Loads a user document from MongoDB.
     """
     query_dict = dict()
+    query_dict['username'] = username
     query_set = db[LISTITEM_COLLECTION].find(query_dict)
     logging.debug(query_dict)
     return query_set
@@ -106,7 +107,5 @@ def save_listitem(db, item):
     item_doc = item.to_primitive()
     iid = db[LISTITEM_COLLECTION].insert(item_doc)
     item._id = iid
-
     apply_all_indexes(db, indexes_listitem, LISTITEM_COLLECTION)
-
     return iid
