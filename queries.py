@@ -60,14 +60,12 @@ def load_user(db, username=None, email=None):
     else:
         raise ValueError('Username or email field required')
 
-    #logging.debug(query_dict)
     user_dict = db[USER_COLLECTION].find_one(query_dict)
 
     if user_dict is None:
         return None
     else:
         u = User(user_dict)
-        logging.debug(u)
         return u
 
 

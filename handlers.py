@@ -8,8 +8,9 @@ from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
 from brubeck.templating import Jinja2Rendering
 
+
 from brubeck.models import User
-from models import ListItem
+from models import ListItem,ObjectIdType
 from queries import (load_user,
                      save_user,
                      load_listitems,
@@ -18,8 +19,8 @@ from queries import (load_user,
 from datetime import date
 import datetime
 from schematics.types import DateTimeType
-from brubeck.timekeeping import curtime
 
+from brubeck.timekeeping import curtime
 from datetime import datetime, timedelta
 
 def totimestamp(dt, epoch=datetime(1970,1,1)):
@@ -184,19 +185,19 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
             url = 'http://%s' % (url)
 
 
-        logging.debug(int(self.current_time))
+        logging.debug(self.current_user.id)
             
         link_item = {
             'owner': self.current_user.id,
             'username': self.current_user.username,
-            'created_at': datetime.utcnow() ,
+            'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow(),
             'url': url,
         }
 
         item = ListItem(link_item)
         logging.debug(item.to_primitive())
-        #item.validate()
+        item.validate()
         save_listitem(self.db_conn, item)
             
         return self.redirect('/')
@@ -211,12 +212,10 @@ class APIListDisplayHandler(BaseHandler):
     def get(self):
         """Renders a template with our links listed
         """
-        items_qs = load_listitems(self.db_conn, self.current_user.id)
+        items_qs = load_listitems(self.db_conn, self.current_user.username)
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         num_items = items_qs.count()
-        
-        items = [ListItem.make_ownersafe(i) for i in items_qs]
-
+        items = [(i['updated_at'], i['url']) for i in items_qs]
         data = {
             'num_items': num_items,
             'items': items,
@@ -230,4 +229,3 @@ class APIListDisplayHandler(BaseHandler):
         """Renders a template with our links listed
         """
         return self.get()
-
