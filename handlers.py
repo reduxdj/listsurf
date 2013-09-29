@@ -199,7 +199,6 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
         logging.debug(item.to_primitive())
         item.validate()
         save_listitem(self.db_conn, item)
-            
         return self.redirect('/')
 
 
@@ -213,15 +212,9 @@ class APIListDisplayHandler(BaseHandler):
         """Renders a template with our links listed
         """
         items_qs = load_listitems(self.db_conn, self.current_user.username)
-
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
-        items = []
         num_items = items_qs.count()
-        for item in items_qs:
-            list_item = ListItem(item)
-            items.append( list_item.to_primitive(role='owner') )
-            logging.info(items)
-        self.set_body(json.dumps(items)) 
+        self.set_body(json.dumps([ ListItem(i).to_primitive(role='owner') for i in items_qs]))
         return self.render(status_code=200)
     
     @web_authenticated
