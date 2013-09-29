@@ -213,15 +213,15 @@ class APIListDisplayHandler(BaseHandler):
         """Renders a template with our links listed
         """
         items_qs = load_listitems(self.db_conn, self.current_user.username)
-        items_qs.sort('updated_at', direction=pymongo.DESCENDING)
-        num_items = items_qs.count()
-        items = [(i['updated_at'], i['url']) for i in items_qs]
-        data = {
-            'num_items': num_items,
-            'items': items,
-        }
 
-        self.set_body(json.dumps(data))
+        items_qs.sort('updated_at', direction=pymongo.DESCENDING)
+        items = []
+        num_items = items_qs.count()
+        for item in items_qs:
+            list_item = ListItem(item)
+            items.append( list_item.to_primitive(role='owner') )
+            logging.info(items)
+        self.set_body(json.dumps(items)) 
         return self.render(status_code=200)
     
     @web_authenticated

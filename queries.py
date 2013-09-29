@@ -4,7 +4,7 @@
 import pymongo
 from models import User
 import logging
-
+from bson import json_util
 ###
 ### Database Connection Handling
 ###
