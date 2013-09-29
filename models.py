@@ -181,7 +181,7 @@ class ListItem(Model):
 
   class Options:
         roles = {
-            'owner': blacklist('owner_id'),
+            'owner': blacklist('owner','username'),
         }
 
   def __unicode__(self):
