@@ -94,6 +94,12 @@ def load_listitems(db, username=None):
     query_set = db[LISTITEM_COLLECTION].find({'username':username})
     return query_set
 
+def page_listitems(db,username=None,paging_args=None):
+    page = paging_args[0]
+    count = paging_args[1]
+    skip = paging_args[2]
+    query_set = db[LISTITEM_COLLECTION].find({'username':username}).skip(page * (page - 1)).limit(count)
+    return query_set
 
 def save_listitem(db, item):
     """Loads a user document from MongoDB.

@@ -13,6 +13,7 @@ from brubeck.models import User
 from models import ListItem,ObjectIdType
 from queries import (load_user,
                      save_user,
+                     page_listitems,
                      load_listitems,
                      save_listitem)
 
@@ -202,16 +203,48 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
         return self.redirect('/')
 
 
+class StreamedHandlerMixin:
+    """Provides standard definitions for paging arguments
+    """
+    def get_stream_offset(self, default_since=0):
+        """This function returns some offset for use with either `created_at`
+        or `updated_at` as provided by `StreamModelMixin`.
+        """
+        since = get_typed_argument('since', default_since, self, long)
+        return since
+
+    def get_paging_arguments(self, default_page=0, default_count=25,
+                             max_count=25):
+        """This function checks for arguments called `page` and `count`. It
+        returns a tuple either with their value or default values.
+
+        `max_count` may be used to put a limit on the number of items in each
+        page. It defaults to 25, but you can use `max_count=None` for no limit.
+        """
+        page = int(self.get_argument('page',default_page))
+        count = int(self.get_argument('count',default_page))
+        logging.info(page)
+        if count > max_count: count = max_count
+
+        default_skip = page * count
+        skip = self.get_argument('skip',default_skip)
+        default_skip = page * count
+        #TODO:
+        #Return tuple like (('page',page),('count',count),('skip',skip))
+        #have these tuples set as locals in function rather than indexed arguments
+        return (page, count, skip)
+
 ### API Handler
 
-class APIListDisplayHandler(BaseHandler):
+class APIListDisplayHandler(BaseHandler,StreamedHandlerMixin):
     """A link listserv (what?!)
     """
-    @web_authenticated
+    #@web_authenticated
     def get(self):
-        """Renders a template with our links listed
+        """Renders a JSON response
         """
-        items_qs = load_listitems(self.db_conn, self.current_user.username)
+        logging.info('page %s' % self.get_argument('page'))
+        items_qs = page_listitems(self.db_conn, self.current_user.username,self.get_paging_arguments())
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         num_items = items_qs.count()
         self.set_body(json.dumps([ ListItem(i).to_primitive(role='owner') for i in items_qs]))
