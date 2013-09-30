@@ -184,10 +184,8 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
 
         if not url.startswith('http'):
             url = 'http://%s' % (url)
-
-
-        logging.debug(self.current_user.id)
-            
+        
+        logging.info( self.current_user.to_primitive() )
         link_item = {
             'owner': self.current_user.id,
             'username': self.current_user.username,
@@ -197,7 +195,6 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
         }
 
         item = ListItem(link_item)
-        logging.debug(item.to_primitive())
         item.validate()
         save_listitem(self.db_conn, item)
         return self.redirect('/')
@@ -223,29 +220,30 @@ class StreamedHandlerMixin:
         page = int(self.get_argument('page',default_page))
         count = int(self.get_argument('count',default_count))
         if count > max_count: count = max_count
-
-        default_skip = page * count
-        skip = int(self.get_argument('skip',default_skip))
-        default_skip = page * count
-        return {'page': page, 'count':count, 'skip':skip }
+        skip = (page+1)*count - count
+        limit = (page+1)*count
+        return {'page': page, 'count':count, 'skip': skip, 'limit': limit}
 
 ### API Handler
 
 class APIListDisplayHandler(BaseHandler,StreamedHandlerMixin):
     """A link listserv (what?!)
     """
-    #@web_authenticated
+    @web_authenticated
     def get(self):
         """Renders a JSON response
         """
         paging_arguments = self.get_paging_arguments()
         total = load_listitems(self.db_conn, self.current_user.username).count()
         items_qs = page_listitems(self.db_conn, self.current_user.username,**paging_arguments)
-        paging_arguments.update({'total': total })
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         num_items = items_qs.count()
         response = {
-            'paging' : paging_arguments,
+            'paging' : {
+                'page'  : paging_arguments['page'],
+                'count' : paging_arguments['count'],
+                'total' : total
+            },
             'items' :  [ ListItem(i).to_primitive(role='owner') for i in items_qs]
         }
         self.set_body(json.dumps( response ))

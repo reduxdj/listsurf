@@ -60,7 +60,7 @@ class User(Model):
     """
     username = StringType(max_length=30, required=True)
     password = StringType(max_length=128)
-
+    _id = ObjectIdType()
     is_active = BooleanType(default=False)
     last_login = LongType(default=curtime)
     date_joined = LongType(default=curtime)
@@ -75,6 +75,10 @@ class User(Model):
 
     def __unicode__(self):
         return u'%s' % (self.username)
+
+    @property
+    def id(self):
+        return self._id
 
     def set_password(self, raw_passwd):
         """Generates bcrypt hash and salt for storing a user's password. With

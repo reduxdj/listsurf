@@ -61,6 +61,7 @@ def load_user(db, username=None, email=None):
         raise ValueError('Username or email field required')
 
     user_dict = db[USER_COLLECTION].find_one(query_dict)
+    logging.info(user_dict)
 
     if user_dict is None:
         return None
@@ -94,9 +95,8 @@ def load_listitems(db, username=None):
     query_set = db[LISTITEM_COLLECTION].find({'username':username})
     return query_set
 
-def page_listitems(db,username=None,page=0,count=25,skip=0):
-    logging.info(count)
-    query_set = db[LISTITEM_COLLECTION].find({'username':username}).skip(page * (page - 1)).limit(count)
+def page_listitems(db,username=None,page=0,count=25,skip=0,limit=0):
+    query_set = db[LISTITEM_COLLECTION].find({'username':username}).skip(skip).limit(limit)
     return query_set
 
 def save_listitem(db, item):
