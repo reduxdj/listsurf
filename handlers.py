@@ -213,8 +213,7 @@ class StreamedHandlerMixin:
         since = get_typed_argument('since', default_since, self, long)
         return since
 
-    def get_paging_arguments(self, default_page=0, default_count=25,
-                             max_count=25):
+    def get_paging_arguments(self, default_count=25, default_page=0, max_count=25):
         """This function checks for arguments called `page` and `count`. It
         returns a tuple either with their value or default values.
 
@@ -222,17 +221,13 @@ class StreamedHandlerMixin:
         page. It defaults to 25, but you can use `max_count=None` for no limit.
         """
         page = int(self.get_argument('page',default_page))
-        count = int(self.get_argument('count',default_page))
-        logging.info(page)
+        count = int(self.get_argument('count',default_count))
         if count > max_count: count = max_count
 
         default_skip = page * count
-        skip = self.get_argument('skip',default_skip)
+        skip = int(self.get_argument('skip',default_skip))
         default_skip = page * count
-        #TODO:
-        #Return tuple like (('page',page),('count',count),('skip',skip))
-        #have these tuples set as locals in function rather than indexed arguments
-        return (page, count, skip)
+        return {'page': page, 'count':count, 'skip':skip }
 
 ### API Handler
 
@@ -243,11 +238,17 @@ class APIListDisplayHandler(BaseHandler,StreamedHandlerMixin):
     def get(self):
         """Renders a JSON response
         """
-        logging.info('page %s' % self.get_argument('page'))
-        items_qs = page_listitems(self.db_conn, self.current_user.username,self.get_paging_arguments())
+        paging_arguments = self.get_paging_arguments()
+        total = load_listitems(self.db_conn, self.current_user.username).count()
+        items_qs = page_listitems(self.db_conn, self.current_user.username,**paging_arguments)
+        paging_arguments.update({'total': total })
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         num_items = items_qs.count()
-        self.set_body(json.dumps([ ListItem(i).to_primitive(role='owner') for i in items_qs]))
+        response = {
+            'paging' : paging_arguments,
+            'items' :  [ ListItem(i).to_primitive(role='owner') for i in items_qs]
+        }
+        self.set_body(json.dumps( response ))
         return self.render(status_code=200)
     
     @web_authenticated
