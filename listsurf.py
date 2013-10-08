@@ -35,6 +35,7 @@ handler_tuples = [
     (r'^/create', AccountCreateHandler),
     (r'^/add_item', ListAddHandler),
     (r'^/api', APIListDisplayHandler),
+    (r'^/add_file', UploadHandler),
     (r'^/$', ListDisplayHandler),
 ]
 

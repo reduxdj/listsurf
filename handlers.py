@@ -156,7 +156,7 @@ class ListDisplayHandler(BaseHandler, Jinja2Rendering):
         items_qs = load_listitems(self.db_conn, self.current_user.username)
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         
-        items = [(i['updated_at'], i['url']) for i in items_qs]
+        items = [ ListItem(i).to_primitive(role='owner') for i in items_qs ]
         context = {
             'links': items,
         }
@@ -207,7 +207,7 @@ class StreamedHandlerMixin:
         """This function returns some offset for use with either `created_at`
         or `updated_at` as provided by `StreamModelMixin`.
         """
-        since = get_typed_argument('since', default_since, self, long)
+        since = int(self.get_argument('since',default_since))
         return since
 
     def get_paging_arguments(self, default_count=25, default_page=0, max_count=25):
@@ -215,7 +215,7 @@ class StreamedHandlerMixin:
         returns a tuple either with their value or default values.
 
         `max_count` may be used to put a limit on the number of items in each
-        page. It defaults to 25, but you can use `max_count=None` for no limit.
+        page. It defaults to 25, but you can use.
         """
         page = int(self.get_argument('page',default_page))
         count = int(self.get_argument('count',default_count))
@@ -223,6 +223,12 @@ class StreamedHandlerMixin:
         skip = (page+1)*count - count
         limit = (page+1)*count
         return {'page': page, 'count':count, 'skip': skip, 'limit': limit}
+
+class UploadHandler(BaseHandler):
+    def post(self):
+        file_one = self.message.files['data'][0]
+        i = Image.open(StringIO.StringIO(file_one['body']))
+        i.save('word.png')
 
 ### API Handler
 
