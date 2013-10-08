@@ -4,8 +4,12 @@
 }
 
 body {
-    width: 600px;
+   background:url( '/media/multi-rotor.png' );
+   background-size: contain;
+   background-repeat:no-repeat;
 }
+
+
 
 .center {
     text-align: center;
