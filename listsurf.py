@@ -12,6 +12,7 @@ from handlers import (AccountLoginHandler,
                       AccountCreateHandler,
                       ListDisplayHandler,
                       ListAddHandler,
+                      UploadHandler,
                       APIListDisplayHandler)
 
 from queries import init_db_conn
