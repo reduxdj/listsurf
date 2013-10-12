@@ -3,6 +3,8 @@ import time
 import logging
 import pymongo
 import json
+from PIL import Image
+import StringIO
 
 from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
@@ -226,8 +228,11 @@ class StreamedHandlerMixin:
 
 class UploadHandler(BaseHandler):
     def post(self):
-        file_one = self.message.files['data'][0]
-        i = Image.open(StringIO.StringIO(file_one['body']))
+        logging.debug( self.get_argument('dataFile') )
+        #print 'FILES:', self.get_argument('dataFile')
+        file_one = self.get_argument('dataFile')
+        print 'FILES:', file_one
+        i = Image.open(StringIO.StringIO(file_one))
         i.save('word.png')
 
 ### API Handler
