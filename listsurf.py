@@ -12,6 +12,7 @@ from handlers import (AccountLoginHandler,
                       AccountCreateHandler,
                       ListDisplayHandler,
                       ListAddHandler,
+                      UploadHandler,
                       APIListDisplayHandler)
 
 from queries import init_db_conn
@@ -35,6 +36,7 @@ handler_tuples = [
     (r'^/create', AccountCreateHandler),
     (r'^/add_item', ListAddHandler),
     (r'^/api', APIListDisplayHandler),
+    (r'^/add_file', UploadHandler),
     (r'^/$', ListDisplayHandler),
 ]
 

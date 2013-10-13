@@ -3,19 +3,36 @@ import time
 import logging
 import pymongo
 import json
+from PIL import Image
+import StringIO
 
 from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
 from brubeck.templating import Jinja2Rendering
 
+
 from brubeck.models import User
-from models import ListItem
+from models import ListItem,ObjectIdType
 from queries import (load_user,
                      save_user,
+                     page_listitems,
                      load_listitems,
                      save_listitem)
 
-from schematics.transforms import blacklist, whitelist
+
+from datetime import date
+import datetime
+from schematics.types import DateTimeType
+
+from brubeck.timekeeping import curtime
+from datetime import datetime, timedelta
+
+def totimestamp(dt, epoch=datetime(1970,1,1)):
+    td = dt - epoch
+    # return td.total_seconds()
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 1e6 
+
+
 ###
 ### Authentication
 ###
@@ -32,11 +49,11 @@ class BaseHandler(WebMessageHandler, UserHandlingMixin):
         the database.
         """
         user = None
-        
         # Try loading credentials from secure cookie
         user_id = self.get_cookie('user_id',
                                   secret=self.application.cookie_secret)
 
+        logging.debug(user_id)
         # If secure cookies yields username, load it
         if user_id:
             user = load_user(self.db_conn, username=user_id)
@@ -58,10 +75,7 @@ class BaseHandler(WebMessageHandler, UserHandlingMixin):
             return
         
         logging.debug('Access granted for user: %s' % user.username)
-
         return user
-
-
 ###
 ### Account Handlers
 ###
@@ -111,9 +125,13 @@ class AccountCreateHandler(BaseHandler, Jinja2Rendering):
         email = self.get_argument('email')
 
         try:
-            u = User.create_user(username, password, email)
-            u.validate()
-            save_user(self.db_conn, u)
+            now = curtime()
+            username = username.lower()
+            email = email.strip().lower()
+            user = User({'username':username, 'email':email, 'date_joined':now})
+            user.set_password(password)
+            user.validate()
+            save_user(self.db_conn, user)
         except Exception, e:
             logging.error('Credentials failed')
             logging.error(e)
@@ -139,10 +157,10 @@ class ListDisplayHandler(BaseHandler, Jinja2Rendering):
     def get(self):
         """Renders a template with our links listed
         """
-        items_qs = load_listitems(self.db_conn, self.current_user.id)
+        items_qs = load_listitems(self.db_conn, self.current_user.username)
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         
-        items = [(i['updated_at'], i['url']) for i in items_qs]
+        items = [ ListItem(i).to_primitive(role='owner') for i in items_qs ]
         context = {
             'links': items,
         }
@@ -170,43 +188,80 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
 
         if not url.startswith('http'):
             url = 'http://%s' % (url)
-            
+        
+        logging.info( self.current_user.to_primitive() )
         link_item = {
             'owner': self.current_user.id,
             'username': self.current_user.username,
-            'created_at': self.current_time,
-            'updated_at': self.current_time,
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow(),
             'url': url,
         }
 
-        item = ListItem(**link_item)
+        item = ListItem(link_item)
         item.validate()
         save_listitem(self.db_conn, item)
-            
         return self.redirect('/')
 
 
+class StreamedHandlerMixin:
+    """Provides standard definitions for paging arguments
+    """
+    def get_stream_offset(self, default_since=0):
+        """This function returns some offset for use with either `created_at`
+        or `updated_at` as provided by `StreamModelMixin`.
+        """
+        since = int(self.get_argument('since',default_since))
+        return since
+
+    def get_paging_arguments(self, default_count=25, default_page=0, max_count=25):
+        """This function checks for arguments called `page` and `count`. It
+        returns a tuple either with their value or default values.
+
+        `max_count` may be used to put a limit on the number of items in each
+        page. It defaults to 25, but you can use.
+        """
+        page = int(self.get_argument('page',default_page))
+        count = int(self.get_argument('count',default_count))
+        if count > max_count: count = max_count
+        skip = (page+1)*count - count
+        limit = (page+1)*count
+        return {'page': page, 'count':count, 'skip': skip, 'limit': limit}
+
+class UploadHandler(BaseHandler):
+    def post(self):
+        """Checks credentials with decorator and sends user authenticated
+        users to the landing page.
+        """
+        if hasattr(self.message, 'files'):
+            im = Image.open(StringIO.StringIO(self.message.files['files'][0]['body']))
+            print 'IM:', im
+            im.save('word.png')
+        return self.redirect('/')
+
 ### API Handler
 
-class APIListDisplayHandler(BaseHandler):
+class APIListDisplayHandler(BaseHandler,StreamedHandlerMixin):
     """A link listserv (what?!)
     """
     @web_authenticated
     def get(self):
-        """Renders a template with our links listed
+        """Renders a JSON response
         """
-        items_qs = load_listitems(self.db_conn, self.current_user.id)
+        paging_arguments = self.get_paging_arguments()
+        total = load_listitems(self.db_conn, self.current_user.username).count()
+        items_qs = page_listitems(self.db_conn, self.current_user.username,**paging_arguments)
         items_qs.sort('updated_at', direction=pymongo.DESCENDING)
         num_items = items_qs.count()
-        
-        items = [ListItem.make_ownersafe(i) for i in items_qs]
-
-        data = {
-            'num_items': num_items,
-            'items': items,
+        response = {
+            'paging' : {
+                'page'  : paging_arguments['page'],
+                'count' : paging_arguments['count'],
+                'total' : total
+            },
+            'items' :  [ ListItem(i).to_primitive(role='owner') for i in items_qs]
         }
-
-        self.set_body(json.dumps(data))
+        self.set_body(json.dumps( response ))
         return self.render(status_code=200)
     
     @web_authenticated
@@ -214,4 +269,3 @@ class APIListDisplayHandler(BaseHandler):
         """Renders a template with our links listed
         """
         return self.get()
-
