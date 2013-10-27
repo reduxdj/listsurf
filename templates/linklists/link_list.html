@@ -8,8 +8,8 @@
   </tr>
   {% for link in links %}
   <tr>
-    <td>{{ link[0] }}</td>
-    <td><a href="{{ link[1] }}">{{ link[1] }}</a></td>
+    <td>Link {{ link.url  }}</td>
+    <td><a href="{{ link.url  }}">{{ link.url }}</a></td>
   </tr>
   {% endfor %}
 </table>

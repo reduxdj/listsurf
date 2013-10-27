@@ -167,6 +167,7 @@ class UserProfile(Model):
 class ListItem(Model):
   """Bare minimum to have the concept of streamed item.
   """
+  _id = ObjectIdType()
   owner = ObjectIdType(required=True)
   username = StringType(max_length=30, required=True)
   
