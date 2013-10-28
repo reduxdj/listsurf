@@ -235,8 +235,12 @@ class UploadHandler(BaseHandler):
         """
         if hasattr(self.message, 'files'):
             im = Image.open(StringIO.StringIO(self.message.files['files'][0]['body']))
-            print 'IM:', im
-            im.save('media/%s/word.png' % str(self.current_user.id) )
+            path = 'media/%s'  %  str(self.current_user.id) 
+            try:
+                os.mkdir( path )
+            except:
+                pass
+            im.save( path % str( uuid.uuid1() )
         return self.redirect('/')
 
 ### API Handler
