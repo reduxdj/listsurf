@@ -94,7 +94,7 @@ class AccountLoginHandler(BaseHandler, Jinja2Rendering):
         self.set_cookie('user_id', self.current_user.username,
                         secret=self.application.cookie_secret)
         
-        return self.redirect('/')
+        return self.redirect('/list')
 
 
 class AccountLogoutHandler(BaseHandler, Jinja2Rendering):
@@ -141,7 +141,7 @@ class AccountCreateHandler(BaseHandler, Jinja2Rendering):
         self.set_cookie('user_id', username,
                         secret=self.application.cookie_secret)
 
-        return self.redirect('/')
+        return self.redirect('/list')
 
 
 ###
@@ -201,7 +201,7 @@ class ListAddHandler(BaseHandler, Jinja2Rendering):
         item = ListItem(link_item)
         item.validate()
         save_listitem(self.db_conn, item)
-        return self.redirect('/')
+        return self.redirect('/list')
 
 
 class StreamedHandlerMixin:
@@ -242,7 +242,7 @@ class UploadHandler(BaseHandler):
                 pass
             filename = "%s/%s.png" % ( path, str(uuid.uuid1() ) , )
             im.save( filename, format="PNG")
-        return self.redirect('/')
+        return self.redirect('/list')
 
 ### API Handler
 
