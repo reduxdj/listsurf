@@ -5,7 +5,7 @@ import pymongo
 import json
 from PIL import Image
 import StringIO
-
+import uuid
 from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
 from brubeck.templating import Jinja2Rendering
