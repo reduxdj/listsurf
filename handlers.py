@@ -240,7 +240,7 @@ class UploadHandler(BaseHandler):
                 os.mkdir( path )
             except:
                 pass
-            im.save( path % str( uuid.uuid1() )
+            im.save( path % str( uuid.uuid1() ) )
         return self.redirect('/')
 
 ### API Handler
