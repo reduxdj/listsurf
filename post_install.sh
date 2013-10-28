@@ -20,6 +20,14 @@ apt-get -y install sqlite3
 apt-get -y install gcc
 apt-get -y install libsqlite3-dev
 apt-get -y install python-pip
+apt-get install libjpeg-dev
+apt-get install libjpeg-dev
+apt-get install libfreetype6-dev
+apt-get install zlib1g-dev
+apt-get install libpng12-dev
+sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib/
+sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/
+sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/
 pip install -I brubeck
 pip install pymongo
 pip install python-bcrypt
@@ -38,3 +46,5 @@ cd "~/listsurf/" && ./listsurf.py
 useradd -m -d /home/web -s /bin/bash -c "the web owner" -U web
 echo "web ALL=(ALL:ALL) ALL" >> /etc/sudoers
 #mkdir -p proc && sudo mount --bind /proc proc
+
+pip install PIL --upgrade

@@ -9,7 +9,7 @@ import uuid
 from brubeck.auth import web_authenticated, UserHandlingMixin
 from brubeck.request_handling import WebMessageHandler
 from brubeck.templating import Jinja2Rendering
-
+import os
 
 from brubeck.models import User
 from models import ListItem,ObjectIdType
@@ -235,12 +235,13 @@ class UploadHandler(BaseHandler):
         """
         if hasattr(self.message, 'files'):
             im = Image.open(StringIO.StringIO(self.message.files['files'][0]['body']))
-            path = 'media/%s'  %  str(self.current_user.id) 
+            path = 'media/%s' % str(self.current_user.id)
             try:
                 os.mkdir( path )
             except:
                 pass
-            im.save( path % str( uuid.uuid1() ) )
+            filename = "%s/%s.png" % ( path, str(uuid.uuid1() ) , )
+            im.save( filename, format="PNG")
         return self.redirect('/')
 
 ### API Handler
