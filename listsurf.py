@@ -37,6 +37,7 @@ handler_tuples = [
     (r'^/add_item', ListAddHandler),
     (r'^/api', APIListDisplayHandler),
     (r'^/add_file', UploadHandler),
+    (r'^/list', ListDisplayHandler),
     (r'^/$', ListDisplayHandler),
 ]
 
